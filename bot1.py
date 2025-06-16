@@ -49,7 +49,7 @@ from telegram import ChatMemberUpdated
 from telegram.error import BadRequest, Forbidden, TimedOut, NetworkError
 
 # --- Config ---
-BOT_TOKEN = '7252339580:AAGz8jW4iqSrOM6NQ_ybIjckzaVqbMYCM1A'
+BOT_TOKEN = '7847667702:AAHgL2ILmtZ6Dh51kNP6zUOknqglRpapnQ0'
 SUPPORT_LINK = "https://t.me/+D2dATbDtZbNiNGJl"
 
 # --- Helper Functions ---
