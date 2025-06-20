@@ -8253,7 +8253,6 @@ if __name__ == "__main__":
     app.add_handler(CommandHandler(["couple", "couples", "shipping"], couple_command))
 
     # Q command (quote to sticker)
-    app.add_handler(CommandHandler("q", q_command))
 
     # Upscale image
     app.add_handler(CommandHandler("upscale", upscale_command))
@@ -8276,7 +8275,7 @@ if __name__ == "__main__":
     app.add_handler(CallbackQueryHandler(refresh_ff_callback, pattern=r"^refresh_ff_\d+_\w+$"))
     app.add_handler(CommandHandler("mmf", mmf))
     app.add_handler(MessageHandler(filters.PHOTO & filters.COMMAND, mmf))
-
+    app.add_handler(CommandHandler(["q", "r"], quote_command))
     # Logging, bot-added, and antiraid cleanup already handled above
 
     app.run_polling()
