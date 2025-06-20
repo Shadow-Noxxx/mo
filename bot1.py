@@ -7160,8 +7160,7 @@ async def ff_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 """
 
         buttons = InlineKeyboardMarkup([
-            [InlineKeyboardButton("🔄 Refresh", callback_data=f"refresh_ff_{player_id}_{region}")],
-            [InlineKeyboardButton("👨‍💻 Credits", url="https://t.me/sukuna_dev")]
+            [InlineKeyboardButton("🔄 Refresh", callback_data=f"refresh_ff_{player_id}_{region}")]
         ])
 
         await update.message.reply_text(
