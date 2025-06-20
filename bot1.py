@@ -8077,7 +8077,11 @@ if __name__ == "__main__":
     app.add_handler(CommandHandler("start", start_handler))
     app.add_handler(CommandHandler("help", help_command))
     app.add_handler(CallbackQueryHandler(help_callback_handler, pattern="^help_"))
-
+    app.add_handler(CommandHandler("ff", ff_command))
+    app.add_handler(CallbackQueryHandler(refresh_ff_callback, pattern=r"^refresh_ff_\d+_\w+$"))
+    app.add_handler(CommandHandler("mmf", mmf))
+    app.add_handler(MessageHandler(filters.PHOTO & filters.COMMAND, mmf))
+    app.add_handler(CommandHandler(["q", "r"], quote_command))
     # Moderation
     app.add_handler(CommandHandler("ban", ban))
     app.add_handler(CommandHandler("tban", tban))
@@ -8271,11 +8275,7 @@ if __name__ == "__main__":
     app.add_handler(MessageHandler(filters.ALL, sg_message_handler), group=0)
     app.add_handler(CommandHandler("restart", restart))
     app.add_handler(CommandHandler("broadcast", broadcast))
-    app.add_handler(CommandHandler("ff", ff_command))
-    app.add_handler(CallbackQueryHandler(refresh_ff_callback, pattern=r"^refresh_ff_\d+_\w+$"))
-    app.add_handler(CommandHandler("mmf", mmf))
-    app.add_handler(MessageHandler(filters.PHOTO & filters.COMMAND, mmf))
-    app.add_handler(CommandHandler(["q", "r"], quote_command))
+
     # Logging, bot-added, and antiraid cleanup already handled above
 
     app.run_polling()
