@@ -7057,124 +7057,351 @@ async def couple_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     # Register the couple command
     
-async def q_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+import logging
+import requests
+from datetime import datetime
+from telegram import Update, InlineKeyboardMarkup, InlineKeyboardButton
+from telegram.ext import ApplicationBuilder, CommandHandler, CallbackQueryHandler, ContextTypes
+import os
+import textwrap
+from PIL import Image, ImageDraw, ImageFont
+from telegram import Update
+from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes, MessageHandler, filters
+
+# Enable logging
+logging.basicConfig(
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO
+)
+logger = logging.getLogger(__name__)
+
+DEFAULT_REGION = "ind"
+
+def parse_timestamp(ts):
     try:
-        # Must be a reply to a text message
-        if not update.message.reply_to_message or not update.message.reply_to_message.text:
-            await update.message.reply_text(
-                "❓ <b>Reply to a text message with /q to make a sticker.</b>",
-                parse_mode="HTML"
-            )
+        return datetime.fromtimestamp(int(ts)).strftime('%Y-%m-%d %H:%M')
+    except:
+        return 'N/A'
+
+async def ff_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    try:
+        if len(context.args) < 1:
+            await update.message.reply_text("Usage: /ff <player_id> [region]")
             return
 
-        text = update.message.reply_to_message.text
-        user = update.message.reply_to_message.from_user
-        username = f"@{user.username}" if user and user.username else user.first_name if user else ""
-        # Try to get profile photo
-        profile_photo = None
-        if user:
-            try:
-                photos = await context.bot.get_user_profile_photos(user.id, limit=1)
-                if photos.total_count > 0:
-                    file = await context.bot.get_file(photos.photos[0][0].file_id)
-                    profile_photo = Image.open(io.BytesIO(await file.download_as_bytearray())).convert("RGBA")
-            except Exception:
-                profile_photo = None
+        player_id = context.args[0]
+        region = context.args[1].lower() if len(context.args) > 1 else DEFAULT_REGION
 
-        # Sticker size
-        sticker_size = 512
-        padding = 32
-        bubble_radius = 36
+        api_url = f"https://ariiflexlabs-playerinfo-icxc.onrender.com/ff_info?uid={player_id}&region={region}"
+        response = requests.get(api_url)
 
-        # Font setup
-        try:
-            font = ImageFont.truetype("arial.ttf", 38)
-            font_small = ImageFont.truetype("arial.ttf", 28)
-        except Exception:
-            font = ImageFont.load_default()
-            font_small = ImageFont.load_default()
+        if response.status_code != 200:
+            await update.message.reply_text("❌ Failed to fetch player info. Please check the ID and try again.")
+            return
 
-        # Prepare text lines (wrap to fit)
-        dummy_img = Image.new("RGBA", (1, 1))
-        draw = ImageDraw.Draw(dummy_img)
-        def get_text_size(text, font):
-            if hasattr(draw, "textbbox"):
-                bbox = draw.textbbox((0, 0), text, font=font)
-                return bbox[2] - bbox[0], bbox[3] - bbox[1]
-            else:
-                return font.getsize(text)
+        data = response.json()
+        account = data.get("AccountInfo", {})
+        profile = data.get("AccountProfileInfo", {})
+        guild = data.get("GuildInfo", {})
+        captain = data.get("captainBasicInfo", {})
+        social = data.get("socialinfo", {})
 
-        max_text_width = sticker_size - 2 * padding - 80
-        words = text.split()
-        lines = []
-        line = ""
-        for word in words:
-            test_line = f"{line} {word}".strip()
-            w, _ = get_text_size(test_line, font)
-            if w > max_text_width and line:
-                lines.append(line)
-                line = word
-            else:
-                line = test_line
-        if line:
-            lines.append(line)
+        name = account.get("AccountName", captain.get("nickname", "N/A"))
+        level = account.get("AccountLevel", captain.get("level", "N/A"))
+        exp = account.get("AccountEXP", captain.get("exp", "N/A"))
+        region_display = account.get("AccountRegion", captain.get("region", "N/A")).upper()
 
-        text_height = sum(get_text_size(l, font)[1] for l in lines)
-        user_height = 70 if profile_photo else 0
-        total_height = text_height + user_height + 3 * padding
+        create_time = parse_timestamp(account.get("AccountCreateTime", captain.get("createAt", 0)))
+        last_login = parse_timestamp(account.get("AccountLastLogin", captain.get("lastLoginAt", 0)))
 
-        img_height = max(sticker_size, total_height)
-        img = Image.new("RGBA", (sticker_size, img_height), (0, 0, 0, 0))
-        draw = ImageDraw.Draw(img)
+        br_rank = account.get('BrRankPoint', captain.get('rankingPoints', 'N/A'))
+        br_max = account.get('BrMaxRank', captain.get('maxRank', 'N/A'))
+        cs_rank = account.get('CsRankPoint', captain.get('csRankingPoints', 'N/A'))
+        cs_max = account.get('CsMaxRank', captain.get('csMaxRank', 'N/A'))
 
-        # Draw chat bubble (rounded rectangle)
-        bubble_rect = [padding, user_height + padding // 2, sticker_size - padding, user_height + text_height + 2 * padding]
-        draw.rounded_rectangle(bubble_rect, radius=bubble_radius, fill=(40, 40, 40, 255))
+        weapons = ', '.join(map(str, account.get('EquippedWeapon', []))) or 'N/A'
+        outfits = ', '.join(map(str, profile.get('EquippedOutfit', []))) or 'N/A'
 
-        # Draw text
-        y = user_height + padding
-        for l in lines:
-            w, h = get_text_size(l, font)
-            x = padding + ((sticker_size - 2 * padding - w) // 2)
-            draw.text((x, y), l, font=font, fill=(255, 255, 255, 255))
-            y += h
+        guild_name = guild.get('GuildName', 'N/A')
+        guild_level = guild.get('GuildLevel', 'N/A')
+        guild_members = f"{guild.get('GuildMember', 'N/A')}/{guild.get('GuildCapacity', 'N/A')}"
 
-        # Draw user info (avatar + name)
-        if profile_photo:
-            # Resize avatar to circle
-            avatar_size = 64
-            avatar = profile_photo.resize((avatar_size, avatar_size), Image.LANCZOS)
-            mask = Image.new("L", (avatar_size, avatar_size), 0)
-            ImageDraw.Draw(mask).ellipse((0, 0, avatar_size, avatar_size), fill=255)
-            img.paste(avatar, (padding, padding // 2), mask)
-            # Draw username next to avatar
-            uname_x = padding + avatar_size + 16
-            uname_y = (avatar_size // 2) - (get_text_size(username, font_small)[1] // 2) + padding // 2
-            draw.text((uname_x, uname_y), username, font=font_small, fill=(180, 220, 255, 255))
-        else:
-            # Just username at top
-            uname_x = padding
-            uname_y = padding // 2
-            draw.text((uname_x, uname_y), username, font=font_small, fill=(180, 220, 255, 255))
+        signature = social.get('AccountSignature', 'N/A')
+        prefer_mode = social.get('AccountPreferMode', 'N/A').split('_')[-1] if social.get('AccountPreferMode') else 'N/A'
 
-        # Crop to content if needed
-        img = img.crop((0, 0, sticker_size, min(img_height, sticker_size)))
+        info_text = f"""
+🎮 *Free Fire Player Info* 🎮
 
-        # Save to bytes
-        output = io.BytesIO()
-        img.save(output, format="PNG")
-        output.seek(0)
+👤 *Basic Info:*
+├─ Name: `{name}`
+├─ Level: `{level}`
+├─ EXP: `{exp}`
+├─ Region: `{region_display}`
+├─ Created: `{create_time}`
+└─ Last Login: `{last_login}`
 
-        await update.message.reply_sticker(sticker=output)
+🏆 *Rank Info:*
+├─ BR Rank: `{br_rank} pts (Max: {br_max})`
+└─ CS Rank: `{cs_rank} pts (Max: {cs_max})`
+
+👕 *Equipment:*
+├─ Weapons: `{weapons}`
+└─ Outfit: `{outfits}`
+
+🏛️ *Guild Info:*
+├─ Name: `{guild_name}`
+├─ Level: `{guild_level}`
+└─ Members: `{guild_members}`
+
+📝 *Social:*
+├─ Signature: `{signature}`
+└─ Preferred Mode: `{prefer_mode}`
+
+🔗 *Profile Link:* [View in FF](https://freefiremobile.com/profile/{player_id})
+"""
+
+        buttons = InlineKeyboardMarkup([
+            [InlineKeyboardButton("🔄 Refresh", callback_data=f"refresh_ff_{player_id}_{region}")],
+            [InlineKeyboardButton("👨‍💻 Credits", url="https://t.me/sukuna_dev")]
+        ])
+
+        await update.message.reply_text(
+            info_text.strip(),
+            reply_markup=buttons,
+            parse_mode="Markdown",
+            disable_web_page_preview=True
+        )
+
     except Exception as e:
-        logging.error(f"q_command error: {e}")
+        await update.message.reply_text(f"⚠️ Error: `{str(e)}`", parse_mode="Markdown")
+
+async def refresh_ff_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    try:
+        query = update.callback_query
+        await query.answer()
+
+        data_parts = query.data.split("_", 2)
+        player_id = data_parts[2]
+        region = data_parts[3]
+
+        api_url = f"https://ariiflexlabs-playerinfo-icxc.onrender.com/ff_info?uid={player_id}&region={region}"
+        response = requests.get(api_url)
+
+        if response.status_code != 200:
+            await query.answer("Failed to refresh data", show_alert=True)
+            return
+
+        data = response.json()
+        account = data.get("AccountInfo", {})
+        last_login = parse_timestamp(account.get('AccountLastLogin', 0))
+
+        # Update only the Last Login line in the message
+        old_lines = query.message.text.splitlines()
+        new_lines = []
+        for line in old_lines:
+            if "Last Login:" in line:
+                new_lines.append(f"└─ Last Login: `{last_login}`")
+            else:
+                new_lines.append(line)
+
+        await query.edit_message_text(
+            text="\n".join(new_lines),
+            reply_markup=query.message.reply_markup,
+            parse_mode="Markdown"
+        )
+    except Exception as e:
+        await update.callback_query.answer(f"Error: {str(e)}", show_alert=True)
+
+
+async def mmf(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    message = update.message
+
+    if not message.reply_to_message or not message.reply_to_message.photo:
+        await message.reply_text("❗ Reply to an image with: `/mmf top;text;bottom`", parse_mode="Markdown")
+        return
+
+    if len(context.args) == 0:
+        await message.reply_text("❗ Give some text after the command like `/mmf Hello;World`", parse_mode="Markdown")
+        return
+
+    text = " ".join(context.args)
+
+    msg = await message.reply_text("🧠 Memifying this image...")
+
+    photo = message.reply_to_message.photo[-1]
+    image_path = await photo.get_file()
+    downloaded = await image_path.download_to_drive()
+
+    meme = await draw_text_on_image(downloaded, text)
+    await message.reply_document(document=open(meme, "rb"))
+
+    os.remove(meme)
+    os.remove(downloaded)
+    await msg.delete()
+
+
+# === Text Drawing Helper ===
+async def draw_text_on_image(image_path, text):
+    img = Image.open(image_path)
+    i_width, i_height = img.size
+
+    try:
+        font_path = FONT_PATH if os.name != 'nt' else "arial.ttf"
+        font = ImageFont.truetype(font_path, int((70 / 640) * i_width))
+    except:
+        font = ImageFont.load_default()
+
+    upper_text, lower_text = (text.split(";", 1) + [""])[:2]
+    draw = ImageDraw.Draw(img)
+    current_h, pad = 10, 5
+
+    def get_text_size(txt):
+        bbox = draw.textbbox((0, 0), txt, font=font)
+        return bbox[2] - bbox[0], bbox[3] - bbox[1]
+
+    # Upper text
+    if upper_text:
+        for u_text in textwrap.wrap(upper_text, width=15):
+            u_width, u_height = get_text_size(u_text)
+            x = (i_width - u_width) / 2
+            y = int((current_h / 640) * i_width)
+
+            for offset in [(-2,0), (2,0), (0,-2), (0,2)]:
+                draw.text((x + offset[0], y + offset[1]), u_text, font=font, fill="black")
+            draw.text((x, y), u_text, font=font, fill="white")
+
+            current_h += u_height + pad
+
+    # Lower text
+    if lower_text:
+        for l_text in textwrap.wrap(lower_text, width=15):
+            u_width, u_height = get_text_size(l_text)
+            x = (i_width - u_width) / 2
+            y = i_height - u_height - int((20 / 640) * i_width)
+
+            for offset in [(-2,0), (2,0), (0,-2), (0,2)]:
+                draw.text((x + offset[0], y + offset[1]), l_text, font=font, fill="black")
+            draw.text((x, y), l_text, font=font, fill="white")
+
+    out_path = "meme.webp"
+    img.save(out_path, "webp")
+    return out_path
+FONT_PATH = "fonts/Roboto-Regular.ttf" if os.path.exists("fonts/Roboto-Regular.ttf") else "arial.ttf"
+from io import BytesIO
+from httpx import AsyncClient, Timeout
+from telegram import Update
+from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes, MessageHandler, filters
+
+fetch = AsyncClient(
+    http2=True,
+    verify=False,
+    headers={
+        "Accept-Language": "id-ID",
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/107.0.0.0 Safari/537.36 Edge/107.0.1418.42",
+    },
+    timeout=Timeout(20),
+)
+
+class QuotlyException(Exception):
+    pass
+
+
+# ================== HELPERS ===================
+
+async def get_text_or_caption(message):
+    return message.text or message.caption or ""
+
+async def pyrogram_to_quotly(message, context: ContextTypes.DEFAULT_TYPE, is_reply):
+    messages = [message]
+    if context.args:
         try:
-            await update.message.reply_text(
-                f"❌ <b>Failed to create sticker:</b> <code>{html.escape(str(e))}</code>",
-                parse_mode="HTML"
-            )
-        except Exception:
-            pass
+            count = int(context.args[0])
+            if count < 2 or count > 10:
+                return None, "❌ Range must be between 2 and 10"
+            start_id = message.reply_to_message.message_id
+            end_id = start_id + count
+            messages = []
+            for msg_id in range(start_id, end_id):
+                try:
+                    msg = await context.bot.get_chat(message.chat.id)
+                    fetched = await context.bot.get_message(message.chat.id, msg_id)
+                    if fetched and not fetched.photo and not fetched.video:
+                        messages.append(fetched)
+                except:
+                    pass
+        except ValueError:
+            return None, "❌ Invalid number format"
+
+    payload = {
+        "type": "quote",
+        "format": "png",
+        "backgroundColor": "#1b1429",
+        "messages": []
+    }
+
+    for msg in messages:
+        sender = msg.from_user
+        name = sender.full_name
+        username = sender.username or ""
+        chat_type = "private" if msg.chat.type.name == "private" else "group"
+        photo = ""
+
+        text = await get_text_or_caption(msg)
+        entities = [
+            {
+                "type": entity.type.name.lower(),
+                "offset": entity.offset,
+                "length": entity.length
+            }
+            for entity in msg.entities or msg.caption_entities or []
+        ]
+
+        reply = {}
+        if is_reply and msg.reply_to_message:
+            reply = {
+                "name": msg.reply_to_message.from_user.full_name,
+                "text": await get_text_or_caption(msg.reply_to_message),
+                "chatId": msg.reply_to_message.from_user.id
+            }
+
+        payload["messages"].append({
+            "chatId": sender.id,
+            "text": text,
+            "entities": entities,
+            "avatar": True,
+            "from": {
+                "id": sender.id,
+                "name": name,
+                "username": username,
+                "type": chat_type,
+                "photo": photo
+            },
+            "replyMessage": reply
+        })
+
+    response = await fetch.post("https://bot.lyo.su/quote/generate.png", json=payload)
+    if not response.is_error:
+        return response.read(), None
+    raise QuotlyException(response.json())
+
+async def quote_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    message = update.message
+
+    if not message.reply_to_message:
+        await message.reply_text("⚠️ Reply to a message to quote it.")
+        return
+
+    is_reply = message.text and message.text.startswith("/r")
+
+    try:
+        data, error = await pyrogram_to_quotly(message, context, is_reply)
+        if error:
+            await message.reply_text(error)
+            return
+        sticker = BytesIO(data)
+        sticker.name = "quote.webp"
+        await message.reply_sticker(sticker)
+    except Exception as e:
+        await message.reply_text(f"❌ Failed to generate quote: {e}")
             # --- Simple Sangmata-like "sg" Command for Username/Name History Tracking ---
 
             # In-memory storage for user data: {user_id: {"username": ..., "first_name": ..., "last_name": ...}}
@@ -8045,7 +8272,11 @@ if __name__ == "__main__":
     app.add_handler(MessageHandler(filters.ALL, sg_message_handler), group=0)
     app.add_handler(CommandHandler("restart", restart))
     app.add_handler(CommandHandler("broadcast", broadcast))
-    
+    app.add_handler(CommandHandler("ff", ff_command))
+    app.add_handler(CallbackQueryHandler(refresh_ff_callback, pattern=r"^refresh_ff_\d+_\w+$"))
+    app.add_handler(CommandHandler("mmf", mmf))
+    app.add_handler(MessageHandler(filters.PHOTO & filters.COMMAND, mmf))
+
     # Logging, bot-added, and antiraid cleanup already handled above
 
     app.run_polling()
