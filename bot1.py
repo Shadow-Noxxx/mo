@@ -128,6 +128,7 @@ async def auth(update: Update, context: ContextTypes.DEFAULT_TYPE):
             await update.message.reply_text("⚠️ This user is already authorized.")
     except ValueError:
         await update.message.reply_text("🚫 Invalid user ID.")
+sudo_users = []  # ✅ correct if you intend it to be a list
 
 async def unauth(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.effective_user.id != OWNER_ID:
