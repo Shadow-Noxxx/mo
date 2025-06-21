@@ -123,11 +123,11 @@ async def get_target_user(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 def is_admin(member):
     return isinstance(member, ChatMemberAdministrator) or isinstance(member, ChatMemberOwner)
-CHANNEL_USERNAME = "https://t.me/+cRFbrs2OGZYxOTY1"
+CHANNEL_USERNAME = "https://t.me/SHADOW_BOTS_SUPPORT"
 # --- Command Handlers ---
 async def is_user_in_channel(user_id, bot):
     try:
-        member = await bot.get_chat_member(https://t.me/+cRFbrs2OGZYxOTY1 , user_id)
+        member = await bot.get_chat_member( CHANNEL_USERNAME , user_id)
         return member.status in ("member", "administrator", "creator")
     except Exception as e:
         logging.error(f"Error checking channel membership: {e}")
@@ -213,7 +213,7 @@ async def start_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
             )
     else:
         keyboard = [
-            [InlineKeyboardButton("🔔 Join Channel", url="https://t.me/+cRFbrs2OGZYxOTY1")]
+            [InlineKeyboardButton("🔔 Join Channel", url="https://t.me/SHADOW_BOTS_SUPPORT")]
         ]
         reply_markup = InlineKeyboardMarkup(keyboard)
         await update.message.reply_text(
