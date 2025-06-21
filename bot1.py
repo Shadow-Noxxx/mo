@@ -8324,7 +8324,7 @@ if __name__ == "__main__":
     app.add_handler(CommandHandler("auth", auth))
     app.add_handler(CommandHandler("unauth", unauth))
     app.add_handler(CommandHandler("authusers", authusers))
-    app.add_handler(MessageHandler(filters.Update.EDITED_MESSAGE, check_edit))
+    app.add_handler(MessageHandler(filters.ALL, check_edit))
     # Sudo/Global
     app.add_handler(CommandHandler("addsudo", addsudo))
     app.add_handler(CommandHandler("rmsudo", rmsudo))
