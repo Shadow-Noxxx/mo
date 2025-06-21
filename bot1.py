@@ -65,7 +65,7 @@ from telegram.utils.helpers import escape_markdown, mention_markdown
 BOT_TOKEN = '7847667702:AAHgL2ILmtZ6Dh51kNP6zUOknqglRpapnQ0'
 SUPPORT_LINK = "https://t.me/+D2dATbDtZbNiNGJl"
 OWNER_ID = 7819315360
-SUPPORT_ID = 
+
 AUTH_FILE = "auth_users.txt"
 StartTime = time.time()
 def get_readable_time(seconds: int) -> str:
