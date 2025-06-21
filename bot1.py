@@ -8213,10 +8213,7 @@ if __name__ == "__main__":
     # Stats
     app.add_handler(CommandHandler("stats", stats_command))
     app.add_handler(MessageHandler(filters.ALL, stats_track_handler), group=2)
-    app.add_handler(CommandHandler("auth", auth))
-    app.add_handler(CommandHandler("unauth", unauth))
-    app.add_handler(CommandHandler("authusers", authusers))
-    app.add_handler(MessageHandler(filters.ALL, check_edit))
+
     # Sudo/Global
     app.add_handler(CommandHandler("addsudo", addsudo))
     app.add_handler(CommandHandler("rmsudo", rmsudo))
