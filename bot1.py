@@ -51,7 +51,9 @@ import os
 import time
 import html
 import logging
-from telegram import Update, Bot, InlineKeyboardMarkup, InlineKeyboardButton, ParseMode
+from telegram import Update, Bot, InlineKeyboardMarkup, InlineKeyboardButton
+from telegram.constants import ParseMode
+
 from telegram.ext import (
     Updater,
     CommandHandler,
