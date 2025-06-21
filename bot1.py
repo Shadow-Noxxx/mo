@@ -123,7 +123,7 @@ async def get_target_user(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 def is_admin(member):
     return isinstance(member, ChatMemberAdministrator) or isinstance(member, ChatMemberOwner)
-CHANNEL_USERNAME = "@federation_of_shadows"
+CHANNEL_USERNAME = "https://t.me/+cRFbrs2OGZYxOTY1"
 # --- Command Handlers ---
 async def is_user_in_channel(user_id, bot):
     try:
@@ -213,7 +213,7 @@ async def start_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
             )
     else:
         keyboard = [
-            [InlineKeyboardButton("🔔 Join Channel", url=f"https://t.me/{CHANNEL_USERNAME.lstrip('@')}")]
+            [InlineKeyboardButton("🔔 Join Channel", url="https://t.me/+cRFbrs2OGZYxOTY1")]
         ]
         reply_markup = InlineKeyboardMarkup(keyboard)
         await update.message.reply_text(
