@@ -1,68 +1,49 @@
-import logging
 import asyncio
+import logging
+import os
 import re
+import random
+import time
 import html
-from collections import defaultdict
+import aiohttp
+import pickle
+from io import BytesIO
 from datetime import datetime, timedelta
+from collections import defaultdict
+from shlex import split as shlex_split
+
+from PIL import Image, ImageDraw, ImageEnhance, ImageFilter, ImageFont
+import speedtest
+import chess
+import chess.svg
 
 from telegram import (
     Update,
+    Bot,
     InlineKeyboardButton,
     InlineKeyboardMarkup,
-    ChatMemberAdministrator,
-    ChatMemberOwner,
+    ReplyKeyboardMarkup,
+    ReplyKeyboardRemove,
+    ChatMemberUpdated,
     ChatPermissions,
+    ChatMemberOwner,
+    ChatMemberAdministrator,
+    MessageEntity,
 )
-from telegram.ext import (
-    ApplicationBuilder,
-    CommandHandler,
-    ContextTypes,
-)
-import speedtest
-from telegram.ext import ChatMemberHandler
-import getpass
-import os
-import sys
-from telegram.ext import MessageHandler, filters
-from telegram.ext import CallbackQueryHandler
-from telegram import ReplyKeyboardMarkup, ReplyKeyboardRemove
-import random
-from telegram import InlineKeyboardButton, InlineKeyboardMarkup
-import logging
-from datetime import datetime
-import asyncio
-from shlex import split as shlex_split
-from telegram.constants import ParseMode
-import chess
-import io
-from PIL import Image, ImageFilter, ImageEnhance
-from PIL import ImageDraw, ImageFont
-from telegram.constants import ChatType
-import aiohttp
-import pickle
-import signal
-from collections import defaultdict
-from telegram import MessageEntity
-from telegram.ext import CommandHandler
-import chess.svg
-from telegram import ChatMemberUpdated 
-from telegram.error import BadRequest, Forbidden, TimedOut, NetworkError
-import os
-import time
-import html
-import logging
-from telegram import Update, Bot, InlineKeyboardMarkup, InlineKeyboardButton
-from telegram.constants import ParseMode
+from telegram.constants import ParseMode, ChatType
+from telegram.error import BadRequest, Forbidden, TimedOut, NetworkError, TelegramError
+from telegram.helpers import escape_markdown, mention_markdown
 
 from telegram.ext import (
-    Updater,
+    ApplicationBuilder,
+    ContextTypes,
     CommandHandler,
     MessageHandler,
+    CallbackQueryHandler,
+    ChatMemberHandler,
     filters,
-    CallbackContext,
 )
-from telegram.error import BadRequest, Unauthorized
-from telegram.utils.helpers import escape_markdown, mention_markdown
+
 # --- Config ---
 BOT_TOKEN = '7847667702:AAHgL2ILmtZ6Dh51kNP6zUOknqglRpapnQ0'
 SUPPORT_LINK = "https://t.me/+D2dATbDtZbNiNGJl"
