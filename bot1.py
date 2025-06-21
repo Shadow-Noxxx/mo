@@ -123,11 +123,11 @@ async def get_target_user(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 def is_admin(member):
     return isinstance(member, ChatMemberAdministrator) or isinstance(member, ChatMemberOwner)
-CHANNEL_USERNAME = "FOS_BOTS"
+CHANNEL_USERNAME = "@fos_bots"
 # --- Command Handlers ---
 async def is_user_in_channel(user_id, bot):
     try:
-        member = await bot.get_chat_member( CHANNEL_USERNAME , user_id)
+        member = await bot.get_chat_member(CHANNEL_USERNAME, user_id)
         return member.status in ("member", "administrator", "creator")
     except Exception as e:
         logging.error(f"Error checking channel membership: {e}")
@@ -213,7 +213,7 @@ async def start_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
             )
     else:
         keyboard = [
-            [InlineKeyboardButton("🔔 Join Channel", url="https://t.me/FOS_BOTS")]
+            [InlineKeyboardButton("🔔 Join Channel", url=f"https://t.me/{CHANNEL_USERNAME.lstrip('@')}")]
         ]
         reply_markup = InlineKeyboardMarkup(keyboard)
         await update.message.reply_text(
@@ -224,7 +224,6 @@ async def start_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
             parse_mode="HTML",
             reply_markup=reply_markup
         )
-
 
 async def ban(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.message.chat.type == "private":
