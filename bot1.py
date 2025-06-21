@@ -1,38 +1,56 @@
-import asyncio
-import logging
 import os
 import re
-import random
-import time
+import io
+import sys
 import html
-import aiohttp
+import time
 import pickle
-from io import BytesIO
-from datetime import datetime, timedelta
-from collections import defaultdict
-from shlex import split as shlex_split
-
-from PIL import Image, ImageDraw, ImageEnhance, ImageFilter, ImageFont
+import random
+import asyncio
+import signal
+import getpass
 import speedtest
+import logging
+import aiohttp
 import chess
 import chess.svg
 
+from PIL import Image, ImageDraw, ImageEnhance, ImageFilter, ImageFont
+from shlex import split as shlex_split
+from datetime import datetime, timedelta
+from collections import defaultdict
+
 from telegram import (
-    Update,
     Bot,
+    Update,
     InlineKeyboardButton,
     InlineKeyboardMarkup,
     ReplyKeyboardMarkup,
     ReplyKeyboardRemove,
-    ChatMemberUpdated,
-    ChatPermissions,
-    ChatMemberOwner,
-    ChatMemberAdministrator,
     MessageEntity,
+    ChatPermissions,
+    ChatMemberUpdated,
+    ChatMemberAdministrator,
+    ChatMemberOwner,
 )
-from telegram.constants import ParseMode, ChatType
-from telegram.error import BadRequest, Forbidden, TimedOut, NetworkError, TelegramError
-from telegram.helpers import escape_markdown, mention_markdown
+
+from telegram.constants import (
+    ParseMode,
+    ChatType,
+)
+
+from telegram.error import (
+    BadRequest,
+    Forbidden,
+    TimedOut,
+    NetworkError,
+    TelegramError,
+)
+
+from telegram.helpers import (
+    escape_markdown,
+    mention_markdown,
+)
 
 from telegram.ext import (
     ApplicationBuilder,
@@ -43,6 +61,7 @@ from telegram.ext import (
     ChatMemberHandler,
     filters,
 )
+
 
 # --- Config ---
 BOT_TOKEN = '7847667702:AAHgL2ILmtZ6Dh51kNP6zUOknqglRpapnQ0'
