@@ -127,7 +127,7 @@ CHANNEL_USERNAME = "https://t.me/+cRFbrs2OGZYxOTY1"
 # --- Command Handlers ---
 async def is_user_in_channel(user_id, bot):
     try:
-        member = await bot.get_chat_member(CHANNEL_USERNAME, user_id)
+        member = await bot.get_chat_member(https://t.me/+cRFbrs2OGZYxOTY1 , user_id)
         return member.status in ("member", "administrator", "creator")
     except Exception as e:
         logging.error(f"Error checking channel membership: {e}")
