@@ -123,7 +123,7 @@ async def get_target_user(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 def is_admin(member):
     return isinstance(member, ChatMemberAdministrator) or isinstance(member, ChatMemberOwner)
-CHANNEL_USERNAME = "https://t.me/FOS_BOTS"
+CHANNEL_USERNAME = "FOS_BOTS"
 # --- Command Handlers ---
 async def is_user_in_channel(user_id, bot):
     try:
